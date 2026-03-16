@@ -1,0 +1,111 @@
+syntax = "proto3";
+
+package shipment;
+
+option go_package = "github.com/Aset-Mk/shipment-service/gen/shipment";
+
+import "google/protobuf/timestamp.proto";
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum ShipmentStatus {
+  SHIPMENT_STATUS_UNSPECIFIED = 0;
+  SHIPMENT_STATUS_PENDING     = 1;
+  SHIPMENT_STATUS_PICKED_UP   = 2;
+  SHIPMENT_STATUS_IN_TRANSIT  = 3;
+  SHIPMENT_STATUS_DELIVERED   = 4;
+  SHIPMENT_STATUS_CANCELLED   = 5;
+}
+
+// ---------------------------------------------------------------------------
+// Messages
+// ---------------------------------------------------------------------------
+
+message DriverInfo {
+  string name   = 1;
+  string license = 2;
+}
+
+message UnitInfo {
+  string id    = 1;
+  string type  = 2;
+}
+
+message Shipment {
+  string                    id             = 1;
+  string                    reference      = 2;
+  string                    origin         = 3;
+  string                    destination    = 4;
+  ShipmentStatus            status         = 5;
+  DriverInfo                driver         = 6;
+  UnitInfo                  unit           = 7;
+  double                    amount         = 8;
+  double                    driver_revenue = 9;
+  google.protobuf.Timestamp created_at     = 10;
+  google.protobuf.Timestamp updated_at     = 11;
+}
+
+message ShipmentEvent {
+  string                    id          = 1;
+  string                    shipment_id = 2;
+  ShipmentStatus            status      = 3;
+  string                    note        = 4;
+  google.protobuf.Timestamp created_at  = 5;
+}
+
+// ---------------------------------------------------------------------------
+// RPC request / response messages
+// ---------------------------------------------------------------------------
+
+message CreateShipmentRequest {
+  string     reference      = 1;
+  string     origin         = 2;
+  string     destination    = 3;
+  DriverInfo driver         = 4;
+  UnitInfo   unit           = 5;
+  double     amount         = 6;
+  double     driver_revenue = 7;
+}
+
+message CreateShipmentResponse {
+  Shipment shipment = 1;
+}
+
+message GetShipmentRequest {
+  string id = 1;
+}
+
+message GetShipmentResponse {
+  Shipment shipment = 1;
+}
+
+message AddEventRequest {
+  string         shipment_id = 1;
+  ShipmentStatus status      = 2;
+  string         note        = 3;
+}
+
+message AddEventResponse {
+  ShipmentEvent event = 1;
+}
+
+message GetEventsRequest {
+  string shipment_id = 1;
+}
+
+message GetEventsResponse {
+  repeated ShipmentEvent events = 1;
+}
+
+// ---------------------------------------------------------------------------
+// Service
+// ---------------------------------------------------------------------------
+
+service ShipmentService {
+  rpc CreateShipment (CreateShipmentRequest) returns (CreateShipmentResponse);
+  rpc GetShipment    (GetShipmentRequest)    returns (GetShipmentResponse);
+  rpc AddEvent       (AddEventRequest)       returns (AddEventResponse);
+  rpc GetEvents      (GetEventsRequest)      returns (GetEventsResponse);
+}
