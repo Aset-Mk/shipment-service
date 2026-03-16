@@ -1,0 +1,24 @@
+# Binaries
+bin/
+*.exe
+*.out
+
+# Go
+vendor/
+
+# Environment
+.env
+*.env
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Generated proto (tracked separately if needed)
+# gen/
