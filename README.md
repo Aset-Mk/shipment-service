@@ -51,7 +51,9 @@ Tests cover domain logic and use-case behavior. They run without any external de
 
 ## Calling the service
 
-The server has gRPC reflection enabled, so you can use [grpcurl](https://github.com/fullstorydev/grpcurl):
+The server has gRPC reflection enabled, so you can use [grpcurl](https://github.com/fullstorydev/grpcurl/releases/latest).
+
+### Linux / macOS
 
 ```bash
 # create a shipment
@@ -75,6 +77,60 @@ grpcurl -plaintext -d '{
 # get event history
 grpcurl -plaintext -d '{"shipment_id": "<id>"}' \
   localhost:50051 shipment.ShipmentService/GetEvents
+```
+
+### Windows (cmd.exe)
+
+On Windows, single quotes don't work in cmd. Use JSON files and pipe them via `type`:
+
+```cmd
+type create.json | grpcurl.exe -plaintext -d @ localhost:50051 shipment.ShipmentService/CreateShipment
+type add_event.json | grpcurl.exe -plaintext -d @ localhost:50051 shipment.ShipmentService/AddEvent
+type get_events.json | grpcurl.exe -plaintext -d @ localhost:50051 shipment.ShipmentService/GetEvents
+```
+
+Example `create.json`:
+
+```json
+{
+  "reference": "REF-001",
+  "origin": "Almaty",
+  "destination": "Astana",
+  "driver": {"name": "Ali Bekov", "license": "AA1234"},
+  "unit": {"id": "TRUCK-01", "type": "truck"},
+  "amount": 1500.00,
+  "driver_revenue": 300.00
+}
+```
+
+### Testing invalid transitions
+
+To verify that business rules are enforced, try skipping a step — for example jumping from `picked_up` directly to `delivered`:
+
+```json
+{
+  "shipment_id": "<id>",
+  "status": "SHIPMENT_STATUS_DELIVERED",
+  "note": "trying to skip in_transit"
+}
+```
+
+Expected response:
+
+```
+ERROR:
+  Code: FailedPrecondition
+  Message: transition from "picked_up" to "delivered" is not allowed
+```
+
+### Status transitions reference
+
+```
+pending    → picked_up  | cancelled
+picked_up  → in_transit | cancelled
+in_transit → delivered  | cancelled
+delivered  → (terminal)
+cancelled  → (terminal)
 ```
 
 ## Architecture
