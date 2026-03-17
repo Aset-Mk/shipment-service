@@ -1,0 +1,35 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: shipment
+      POSTGRES_PASSWORD: shipment
+      POSTGRES_DB: shipment
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./internal/infrastructure/postgres/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shipment -d shipment"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "50051:50051"
+    environment:
+      DATABASE_URL: postgres://shipment:shipment@postgres:5432/shipment?sslmode=disable
+      GRPC_ADDR: ":50051"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pg_data:
