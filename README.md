@@ -1,11 +1,9 @@
 # Shipment Service
-
 A gRPC microservice for managing shipments and tracking their status changes.
 
 ## Running the service
 
 ### With Docker (recommended)
-
 ```bash
 docker-compose up --build
 ```
@@ -186,8 +184,8 @@ infrastructure  →  domain
 
 ## Assumptions
 
-- A shipment reference is unique across the system. Attempting to create two shipments with the same reference returns `AlreadyExists`.
-- Status values are stored as plain strings in Postgres. This keeps migrations simple and avoids a dependency on database enums when the status list changes.
-- `driver_revenue` and `amount` are stored as `NUMERIC(12,2)` — enough precision for logistics costs without floating-point rounding issues.
-- The event history is append-only. There is no API to delete or edit past events.
-- Authentication and authorization are out of scope for this task.
+A shipment reference is unique across the system. Attempting to create two shipments with the same reference returns `AlreadyExists`.
+Status values are stored as plain strings in Postgres. This keeps migrations simple and avoids a dependency on database enums when the status list changes.
+`driver_revenue` and `amount` are stored as `NUMERIC(12,2)` - enough precision for logistics costs without floating-point rounding issues.
+The event history is append-only. There is no API to delete or edit past events.
+Authentication and authorization are out of scope for this task.
