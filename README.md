@@ -10,6 +10,7 @@ docker-compose up --build
 
 The service starts on `:50051`. Postgres migrations run automatically on first launch.
 
+
 ### Without Docker
 
 1. Start a Postgres instance and apply migrations manually:
@@ -45,7 +46,7 @@ Or directly:
 go test ./...
 ```
 
-Tests cover domain logic and use-case behavior. They run without any external dependencies — no database, no network.
+Tests cover domain logic and use-case behavior. They run without any external dependencies - no database, no network.
 
 ## Calling the service
 
@@ -103,7 +104,7 @@ Example `create.json`:
 
 ### Testing invalid transitions
 
-To verify that business rules are enforced, try skipping a step — for example jumping from `picked_up` directly to `delivered`:
+To verify that business rules are enforced, try skipping a step - for example jumping from `picked_up` directly to `delivered`:
 
 ```json
 {
@@ -160,9 +161,10 @@ infrastructure  →  domain
 └── gen/shipment/                     # generated protobuf code
 ```
 
-**Domain layer** (`internal/domain`) has zero dependencies outside the standard library. It owns the `Shipment` aggregate, the status FSM, and the repository interfaces. Everything else depends on it — not the other way around.
 
-**Use-case layer** (`internal/usecase`) coordinates domain objects and repositories. It does not know about gRPC, HTTP, or Postgres. Tests here use in-memory repository implementations — no database needed.
+**Domain layer** (`internal/domain`) has zero dependencies outside the standard library. It owns the `Shipment` aggregate, the status FSM, and the repository interfaces. Everything else depends on it - not the other way around.
+
+**Use-case layer** (`internal/usecase`) coordinates domain objects and repositories. It does not know about gRPC, HTTP, or Postgres. Tests here use in-memory repository implementations - no database needed.
 
 **Infrastructure layer** (`internal/infrastructure/postgres`) implements the repository interfaces from the domain using `pgx/v5`. Swapping the database means replacing only this package.
 
@@ -171,7 +173,9 @@ infrastructure  →  domain
 ## Design decisions
 
 **Status machine defined in the domain.** The `allowedTransitions` map lives in `status.go` and is the single place that controls what status changes are legal. Adding a new status means updating that map and nothing else.
+
 **`ApplyEvent` on the aggregate.** The shipment enforces its own invariants - the use-case does not check transition validity itself, it just calls `shipment.ApplyEvent` and propagates the error. This keeps the business rule close to the data it protects.
+
 **IDGenerator injected as a function.** `NewShipmentService` accepts a `func() string` for generating IDs. This makes the use-case testable with predictable IDs without mocking a package-level function.
 
 **`now` also injected.** The service holds a `func() time.Time` field (defaults to `time.Now`). Tests can override it if time-sensitive assertions are needed.
@@ -183,7 +187,11 @@ infrastructure  →  domain
 ## Assumptions
 
 A shipment reference is unique across the system. Attempting to create two shipments with the same reference returns `AlreadyExists`.
+
 Status values are stored as plain strings in Postgres. This keeps migrations simple and avoids a dependency on database enums when the status list changes.
+
 `driver_revenue` and `amount` are stored as `NUMERIC(12,2)` - enough precision for logistics costs without floating-point rounding issues.
+
 The event history is append-only. There is no API to delete or edit past events.
+
 Authentication and authorization are out of scope for this task.
