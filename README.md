@@ -171,9 +171,7 @@ infrastructure  →  domain
 ## Design decisions
 
 **Status machine defined in the domain.** The `allowedTransitions` map lives in `status.go` and is the single place that controls what status changes are legal. Adding a new status means updating that map and nothing else.
-
-**`ApplyEvent` on the aggregate.** The shipment enforces its own invariants — the use-case does not check transition validity itself, it just calls `shipment.ApplyEvent` and propagates the error. This keeps the business rule close to the data it protects.
-
+**`ApplyEvent` on the aggregate.** The shipment enforces its own invariants - the use-case does not check transition validity itself, it just calls `shipment.ApplyEvent` and propagates the error. This keeps the business rule close to the data it protects.
 **IDGenerator injected as a function.** `NewShipmentService` accepts a `func() string` for generating IDs. This makes the use-case testable with predictable IDs without mocking a package-level function.
 
 **`now` also injected.** The service holds a `func() time.Time` field (defaults to `time.Now`). Tests can override it if time-sensitive assertions are needed.
